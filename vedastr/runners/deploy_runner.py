@@ -1,6 +1,7 @@
 import re
 
 import torch
+from torch.nn.parallel import DataParallel, DistributedDataParallel
 import torch.nn.functional as F
 
 from .base import Common
@@ -31,10 +32,17 @@ class DeployRunner(Common):
 
         model = build_model(cfg)
         self.need_text = model.need_text
-        if torch.cuda.is_available():
-            if torch.cuda.device_count() > 1:
-                model = torch.nn.DataParallel(model)
-            model.cuda()
+        if cfg.get('distribute', False):
+            model = DistributedDataParallel(
+                model.cuda(),
+                device_ids=[torch.cuda.current_device()],
+                broadcast_buffers=True,
+                find_unused_parameters=True)
+        else:
+            if torch.cuda.is_available():
+                if torch.cuda.device_count() > 1:
+                    model = torch.nn.DataParallel(model)
+                model.cuda()
 
         return model
 

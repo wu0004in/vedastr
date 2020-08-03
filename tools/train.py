@@ -11,6 +11,7 @@ from vedastr.utils import Config
 def parse_args():
     parser = argparse.ArgumentParser(description='Train a classification model')
     parser.add_argument('config', type=str, help='config file path')
+    parser.add_argument('--local_rank', default=-1, type=int)
     args = parser.parse_args()
 
     return args
